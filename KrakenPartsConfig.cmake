@@ -8,6 +8,7 @@
 
 ]]
 
+# Source path
 set(KrakenParts_SrcDir ${CMAKE_CURRENT_LIST_DIR}/Source)
 
 # Including dependencies
@@ -16,42 +17,35 @@ if(Standalone)
     include(${CMAKE_CURRENT_LIST_DIR}/Modules/MythSDK/MythSDKConfig.cmake)
 endif()
 
+# Cores' files
 set(KrakenCores_SrcDir ${KrakenParts_SrcDir}/KrakenCores)
 set(DX11Core_Files
     ${KrakenCores_SrcDir}/DX11Core/DX11Core.cpp
     ${KrakenCores_SrcDir}/DX11Core/DX11Core.h
 )
 
-set(KrakenLibrary_SrcDir ${KrakenParts_SrcDir}/KrakenLibrary)
-set(KrakenLibrary_Files
-    ${KrakenLibrary_SrcDir}/KrakenPreset.cpp
-    ${KrakenLibrary_SrcDir}/KrakenPreset.h
-    ${KrakenLibrary_SrcDir}/IKrakenCore.h
-    ${KrakenLibrary_SrcDir}/KrakenStatus.h
+# Include files
+set(Kraken_IncDir ${KrakenParts_SrcDir}/Include)
+set(Kraken_Includes
+    ${Kraken_IncDir}/KrakenPreset.h
+    ${Kraken_IncDir}/IKrakenCore.h
 )
 
-add_library(KrakenLibrary STATIC ${KrakenLibrary_Files})
-set_target_properties(KrakenLibrary PROPERTIES
-    FOLDER KrakenParts
-)
-include_sdk(KrakenLibrary)
-
-function(include_krakenLibrary Target)
-    target_link_libraries(${Target} KrakenLibrary)
-    target_include_directories(${Target} PRIVATE ${KrakenLibrary_SrcDir})
-endfunction()
-
+# Create DX11KrakenCore target
 add_library(DX11KrakenCore STATIC ${DX11Core_Files})
 set_target_properties(DX11KrakenCore PROPERTIES
     FOLDER KrakenParts/KrakenCores
 )
 include_sdk(DX11KrakenCore)
-include_krakenLibrary(DX11KrakenCore)
 
-function(include_krakenCores Target)
+# Helper function to link KrakenParts
+function(include_krakenParts Target)
     if(APPLE)
-    elseif(_WIN32)
+    elseif(WIN32)
         target_link_libraries(${Target} DX11KrakenCore)
     endif()
-    target_include_directories(${Target} PRIVATE ${KrakenCores_SrcDir})
+    target_include_directories(${Target} PRIVATE
+        ${KrakenCores_SrcDir}
+        ${Kraken_IncDir}
+    )
 endfunction()
